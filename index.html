@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+        <title>Chat Web</title>
+        <style>
+            body,html{height:100%;margin:0;padding:0px 10px;font-family:sans-serif;font-size:14px;color:#242424;}
+            #wrapper{display:table;height:100%;width:100%;}
+            #wrapper > *{display:table-row;}
+
+            #header{margin-bottom:10px;}
+            #header > h1{display:inline-block;padding-right:10px;font-size:26px;
+                margin:10px 0px 0px 0px;line-height:0.8em;vertical-align:middle;}
+            #header > h1 > span{font-weight:normal;font-size:14px;color:#ff0000;}
+            #header > #room-title{display:inline-block;font-size:20px;vertical-align:middle;}
+            #header > #room-title > #open-leave{display:inline-block;font-size:12px;margin-left:10px;}
+            @media(max-width: 500px){
+                #header > h1{font-size:20px;}
+                #header > h1 > span{font-size:10px;}
+                #header > #room-title{font-size:16px;}
+            }
+
+            #userlist{display:inline-block;padding:0px;margin:0;}
+            #userlist > li{list-style:none;display:inline-block;padding:3px 8px;
+                margin:0px 10px 10px 0px;background-color:#cccccc;font-size:12px;}
+            #userlist > li > a{color:#cccccc;text-decoration:none;}
+            #userlist > li:hover > a{color:#242424;}
+            #userlist-wrapper > a{display:inline-block;font-size:12px;margin:0px 10px 10px 0px;}
+
+            #room-wrapper{height:100%;}
+            #room{height:100%;padding:0;margin:0;overflow:auto;
+                border:1px solid #555555;box-shadow: 2px 2px 3px #777777;}
+            #room > li{padding:10px 5px 10px 10px;list-style:none;border-bottom:1px solid #eeeeee;}
+            #room > li > *{vertical-align:top;display:inline-block;}
+            #room > li > .date{float:right;}
+            #room > li > .user{padding-right:10px;}
+
+            #form{display:table;width:100%;margin-top:10px;}
+            #form > *{display:table-cell;vertical-align:middle;}
+            #form > #input-wrapper{width:auto;}
+            #form > #input-wrapper > #input{width:100%;padding:2px 0px 2px 5px;height:25px;
+                border:1px solid #555555;box-shadow: 2px 2px 3px #777777;box-sizing:border-box;}
+            #form > #submit-wrapper{width:220px;text-align:right;}
+            #form > #submit-wrapper > #submit{margin-right:10px;width:80px;font-size:14px;
+                    border:1px solid #555555;box-shadow: 2px 2px 3px #777777;background-color:#eeeeee;}
+            @media(max-width: 600px){
+                #form{display:block;}
+                #form > *{display:inline-block;}
+                #form > #input-wrapper{width:100%;}
+                #form > #submit-wrapper{min-width:210px;text-align:left;margin-top:10px;}
+            }
+
+            #footer{margin:10px 0px;}
+            #footer > a{display:inline-block;font-size:12px;}
+            #footer > span{float:right;font-size:12px;}
+            @media(max-width: 700px){
+                #footer > span{float:none;display:block;margin-bottom:5px;}
+            }
+
+            #modal-wrapper{position:absolute;top:0px;left:0px;height:100%;width:100%;
+                text-align:center;background-color:rgba(0,0,0,0.3);z-index:1;}
+            #modal-helper{display:inline-block;height:100%;width:0px;vertical-align:middle;}
+            .modal{display:inline-block;width:80%;max-width:600px;vertical-align:middle;padding:20px 20px 30px 20px;
+                background-color:#ffffff;border-radius:10px;box-shadow: 0px 0px 10px #777777;box-sizing:border-box;}
+            .modal > h1{margin:0;font-size:25px;}
+            .modal > .close-modal{float:right;text-decoration:none;font-size:12px;}
+            .modal > textarea{height:200px;padding:5px;width:100%;border:1px solid #555555;box-sizing:border-box;}
+            .modal > p{text-align:left;margin:10px 0px;}
+            .modal > button{font-size:16px;margin-top:10px;border:1px solid #555555;
+                box-shadow: 2px 2px 3px #777777;background-color:#eeeeee;}
+            #start-modal > a{display:inline-block;margin:10px 30px;font-size:16px;}
+            #start-modal > p{text-align:center;font-size:16px;color:#ff0000;}
+        </style>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="header-wrapper">
+                <div id="header">
+                    <h1>Chat Web<br/></h1>
+                    <span id="room-title">
+                        Sala de chat:
+                        <span id="room-name"></span>
+                        <a id="open-leave" href="#" style="display:none;">Abandonar sala</a>
+                    </span>
+                </div>
+            </div>
+            <div id="userlist-wrapper">
+                Usuarios en la sala:
+                <ul id="userlist">
+                    <!--
+                    <li id="user_dcbwue4">dcbwue4 (you)</li>
+                    <li id="user_dcbwue4">dcbwue4 <a href="#">X</a></li>
+                    <li id="user_dcbwue4">dcbwue4 <a href="#">X</a></li>
+                    <li id="user_dcbwue4">dcbwue4 <a href="#">X</a></li>
+                    -->
+                </ul>
+                <a id="open-invite" href="#" style="display:none;">Invitar usuarios</a>
+                <a id="open-approve" href="#" style="display:none;">Aprobar las solicitudes de usuario</a>
+            </div>
+            <div id="room-wrapper">
+                <ul id="room">
+                    <!--
+                    <li>
+                        <span class="date">1/1/15 12:19am</span>
+                        <span class="user">dcbwue4:</span>
+                        <span class="text">Hey</span>
+                    </li>
+                    <li>
+                        <span class="date">1/1/15 12:19am</span>
+                        <span class="user">hm4y9w3:</span>
+                        <span class="file">
+                            <a href="#" download="aaa.jpg">
+                                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAABc0lEQVRo3u2av0oDQRCHrzNa2CYaQ2JIc/gcQgQLH0JSSch7pD3BNxDEws5CjViIreAfJAQlBJIyTYrAifpbOOEY4nmXTHb3kim+Zo/bmQ92ZnePc1zXdSaQB5U5sg0yf8ROBB3YAW3wrYFP0AIHnAIPmpKnXIA1DgHfkIDidhoJOhCe8BhUmemH5n8CAxKzlVQiSuCIo8gIndD8HsiC11kkTAuosRx4I7FvwGpaBBSbE7rfdRwJWwR+955OUgmbBBQF8E7yuIqSsE1AUQQfcSVsFFCUQJfkc5YmAUUZ9EhO+2kScIKD35AsJWsE7oIY/3EfekcddVZMCjwznJlKJgU8BoGKSYF1cApGaRWYhqoILKLAFqiDBhN7ugWazNdJX7eAN4c7sVaBw+CzCFfyj1LEIiBtVNqotFFpoyKwTAI18MVYAy/ShZZtH9gInnPtxLtSxCIgAiKweALnjG1yFk6SCIwN/moQl3yUwKXlybfpEvsBy/Fj03/lbb4AAAAASUVORK5CYII="/>
+                            </a>
+                        </span>
+                    </li>
+                    -->
+                </ul>
+            </div>
+            <div id="form-wrapper">
+                <form id="form">
+                    <div id="input-wrapper">
+                        <input id="input" autocomplete="off" placeholder="Esribe tu mensaje aqui."/>
+                    </div>
+                    <div id="submit-wrapper">
+                        <input id="submit" type="submit" value="Enviar"/>
+                        o <a id="upload" href="#">subir un archivo</a>
+                    </div>
+                </form>
+            </div>
+            <div id="footer-wrapper">
+                <div id="footer">
+                    <span>Todos los datos se borraran cuando cierres esta pagina web.</span>
+                </div>
+            </div>
+        </div>
+        <div id="modal-wrapper" style="display:none;">
+            <div id="modal-helper"></div>
+            <div id="invite-modal" class="modal" style="display:none;">
+                <a id="close-invite" class="close-modal" href="#">Cerrar</a>
+                <h1>Su nuevo enlace de invitación:</h1>
+                <p>Copie este enlace y compártalo con la persona que desea invitar. NOTA: Cada invitación solo se puede usar una vez, así que genere una nueva para cada persona.</p>
+                <p><a id="generate-invite" href="#">Generar una nueva invitación</a></p>
+                <textarea id="invite-code" readonly="readonly" autocomplete="off"></textarea>
+                <p><a id="invite-approve" href="#">Aprobar códigos de solicitud de usuario</a></p>
+            </div>
+            <div id="request-modal" class="modal" style="display:none;">
+                <a id="close-request" class="close-modal" href="#">Cancelar</a>
+                <h1>Aquí está su código de solicitud:</h1>
+                <p>Debe solicitar unirse a esta sala de chat. Copie este código de solicitud y compártelo con la persona que lo invitó.</p>
+                <textarea id="request-code" autocomplete="off"></textarea>
+            </div>
+            <div id="approve-modal" class="modal" style="display:none;">
+                <a id="close-approve" class="close-modal" href="#">Cancelar</a>
+                <h1>Apruebe un código de solicitud: </h1>
+                <p> Pegue el código de solicitud que recibió y haga clic en aprobar. </p>
+                <textarea id="approve-code" autocomplete="off" placeholder="request_code=asfjhjrifbvuy4785uhgfyew3895grvesufns...."></textarea>
+                <button id="approve-request">Approve</button>
+            </div>
+            <div id="join-modal" class="modal" style="display:none;">
+                <a id="close-join" class="close-modal" href="#">Atrás</a>
+                <h1>Pega la invitación: </h1>
+                <p> Pegue el enlace de invitación que recibió para generar un código de solicitud. </p>
+                <textarea id="join-code" autocomplete="off" placeholder="https://kun050710.github.com/#asfjhjrifbvuy4ns...."></textarea>
+                <button id="generate-request">Generar el código de solicitud</button>
+            </div>
+            <div id="start-modal" class="modal" style="display:none;">
+                <h1>Chat Web</h1>
+                <a id="new-room" href="#">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAD/ElEQVR42u3dy0tUcRTAcbUH2iJbBL0J4dYqXCRWREFZi4jctLCoPyBTo1UYBG3KzAiDaNGiVaBB1l4orHUY0UaK6EXgoxY9pLSE6vyY3yZD5nV+M79z5zvw3UXMnPOZ4Tpz505VkiRVVLkxBAAwBAAQAAgABAACAAGAAKDRSqldGpLGpT+UV25md6UTfpZmADRL96U5lqiWm+U9qSlmAOv9nWRhYXOvCutiA3BMmmY5JeubdCQGADXSdRZStvql6nIBWOIP8FhEebsjLS41AKdukOFH0+1CXwkKBdDH0KPrYqkAtEq/GXh0uZ0cDA2gXppk2FG/ebQ8JACO+OPvWigAa6VZBhx9M9LqEAB6Ga6ZerQBuD8xPjBYM73P9c/CXAFsZ6jmatYE0M1AzXVGEwCf8tlrSBPAcwZqrmeaAD4ZHsSUdFJak+OBUbX/vL3T+OP+qAlg1vDR8IYiPvHcaPivnxlNAFafBXsUTppoMfz4KxrAa8XT3d4CwF4PFAE8BIC9hhUBDAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAmJf7ptGA/wZrV6BaFQG0Bryfbgbukns/KwXAWJK5cbn2f9ssvUw7gC9J5qLSLHzh7yJOpxlAH0vOWn+aARxmwVlrSzOAAyw4a4cAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0gCgjQVn7XiaAdxkwVm7lWYA7jyARpa8YFulX2k/H8D96NQ+lv1f+5PM9X0r5pSwUf9ydyNQHYrL6Qh4P90MnnJOIOcEAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACY34gigBEA2GtcqlZYvvs/JgBgM40vox41/PjVAPwwOoDPUlMRy9+WZK5uavGxf9cEMGX4WTAjXZV2SZuS7Df3b3YnmSt2zhp+3JOaAEYND6JSe6IJYJCBmmtAE8BpBmquLk0AjQzUXFs0AbheMFQzjeW613wAnGWwZuoOAWCF9JXhRp9736I+BADXeQYcfefy2Wm+AGqlVww52tyPTi0NCcC1I9G9lBnp5H52rjnffRb6HvkpBh5d7YXssphPyS4z9Gi6UOgei/2o9ArDL3s9xexQ42wZ9zbxHIsoee44rLPY/WmdMrVTesdSStYbfzBeFQsA1zKp13/+zpLCndvgXvLrtPYW4qLHqzyECRamen7jJT9b1X2FvPr1IqnFi33sz1BhmbnlnjyP/Oz2SjWh9lTqS6LXecUNCbf5twY/m9pS7oTr9Fd4DAEADAEABAACAAGAAEAAoMrpLwXWZv9j25wDAAAAAElFTkSuQmCC"/>
+                    <br/>
+                    Crea una sala de chat
+                </a>
+                <a id="join-room" href="#">
+                    <img src="data:image/png;base64,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"/>
+                    <br/>
+                    Unete a una sala existente
+                </a>
+            </div>
+        </div>
+        <script>
+
+            /*************************
+            **************************
+            **** Helper Functions ****
+            **************************
+            *************************/
+
+            //resize the chat window since Firefox doesn't recognize overflow:scroll; with height:100%;
+            function resizer(){
+                var room_px = window.innerHeight - 2 -
+                              document.getElementById("header-wrapper").clientHeight -
+                              document.getElementById("userlist-wrapper").clientHeight -
+                              document.getElementById("form-wrapper").clientHeight -
+                              document.getElementById("footer-wrapper").clientHeight -
+                              document.getElementById("modal-wrapper").clientHeight;
+                document.getElementById("room").style.height = room_px > 200 ? room_px + "px" : "200px";
+            }
+            resizer();
+            window.onresize = resizer;
+
+            //Base 58 encoder/decoder from https://gist.github.com/diafygi/90a3e80ca1c2793220e5/
+            var MAP = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+            var toB58 = function(B,A){var d=[],s="",i,j,c,n;for(i in B){j=0,c=B[i];s+=c||s.length^i?"":1;while(j in d||c){n=d[j];n=n?n*256+c:c;c=n/58|0;d[j]=n%58;j++}}while(j--)s+=A[d[j]];return s};
+            var fromB58 = function(S,A){var d=[],b=[],i,j,c,n;for(i in S){j=0,c=A.indexOf(S[i]);if(c<0)return undefined;c||b.length^i?i:b.push(0);while(j in d||c){n=d[j];n=n?n*58+c:c;c=n>>8;d[j]=n%256;j++}}while(j--)b.push(d[j]);return new Uint8Array(b)};
+
+            //random string generator (base58 encoded)
+            function randomString(len){
+                var bytes = window.crypto.getRandomValues(new Uint8Array(len));
+                return toB58(bytes, MAP);
+            }
+
+            //base58 encode a UTF-8 string
+            function strToB58(str){
+                var bytes = new Uint8Array(str.length);
+                for(var i = 0; i < str.length; i++){
+                    bytes[i] = str.charCodeAt(i);
+                }
+                return toB58(bytes, MAP);
+            }
+
+            //decode a UTF-8 string from a base58 string
+            function b58ToStr(b58){
+                return String.fromCharCode.apply(null, fromB58(b58, MAP));
+            }
+
+            //print any errors
+            function error(err){console.error(err);}
+            function ignore(){}
+
+            //compatibility for firefox and chrome
+            var RTCPeerConnection = window.RTCPeerConnection
+                || window.mozRTCPeerConnection
+                || window.webkitRTCPeerConnection;
+            var RTCSessionDescription = window.RTCSessionDescription
+                || window.mozRTCSessionDescription
+                || window.webkitRTCSessionDescription;
+            var RTCIceCandidate = window.RTCIceCandidate
+                || window.mozRTCIceCandidate
+                || window.webkitRTCIceCandidate;
+
+
+            /***********************
+            ************************
+            **** Chat Functions ****
+            ************************
+            ***********************/
+
+            /*
+                STATE = {
+                    room: "<random_string>",
+                    users: [
+                        //RTCPeerConnection objects that are extended with:
+                        //  RTCPeerConnection.username = "<random_string>" //the username of the connected user
+                        //  RTCPeerConnection.iceCandidates = [] //list of ice candidates
+                        //  RTCPeerConnection.dc = DataChannel //the datachannel for the connection
+                        //  RTCPeerConnection.queue = Array([...]) //pending messages not sent yet
+                        <peerConnection>,
+                        <peerConnection>,
+                        ...
+                    ],
+                    logs: [
+                        {
+                            id: "<random_string>",
+                            type: "message", //(message|file|join|leave)
+                            timestamp: 1234567890,
+
+                            //message
+                            username: "<random_string>",
+                            message: "Hello world!",
+
+                            //file
+                            username: "<random_string>",
+                            filename: "abc.jpg",
+                            file: <Blob>,
+                            chunks: {
+                                0: <Blob>,
+                                1: <Blob>,
+                                2: null,
+                                3: <Blob>,
+                            },
+
+                            //join
+                            username: "<random_string>",
+
+                            //leave
+                            username: "<random_string>",
+                        },
+                        ...
+                    ],
+                }
+            */
+            var STATE = {
+                username: randomString(8),
+                users: {},
+                logs: [],
+            };
+            function resetState(){
+                STATE = {
+                    username: randomString(8),
+                    users: {},
+                    logs: [],
+                };
+            }
+            function getUsernames(){
+                var usernames = [STATE.username];
+                for(var k in STATE.users){
+                    if(STATE.users[k].dc.username){
+                        usernames.push(STATE.users[k].dc.username);
+                    }
+                }
+                return usernames;
+            }
+
+            /**************************
+            ***************************
+            **** Message Listeners ****
+            ***************************
+            **************************/
+
+            //receive a message from a peer connection
+            /*
+                data = {
+                    id: "<random_string>",
+                    type: "message", //(message|file|room|join|leave)
+                    timestamp: 1234567890,
+
+                    //message
+                    username: "<random_string>",
+                    message: "Hello World!",
+
+                    //file
+                    username: "<random_string>",
+                    filename: "abc.jpg",
+                    chunkIndex: 1,
+                    chunkLength: 10,
+                    chunk: ArrayBuffer([...]),
+
+                    //room
+                    roomname: "<random_string>",
+                    userlist: ["<random_string>", ...],
+
+                    //join
+                    username: "<random_string>",
+
+                    //leave
+                    username: "<random_string>",
+                }
+            */
+
+            //A remote user has been approved and a connection has been established
+            function receiveRemoteOpen(evt){
+                //close the approval modal
+                document.getElementById("approve-modal").style.display = "none";
+                document.getElementById("modal-wrapper").style.display = "none";
+
+                //send the current room state to the user
+                evt.target.send(JSON.stringify({
+                    id: randomString(12),
+                    type: "room",
+                    timestamp: (new Date()).getTime(),
+                    roomname: STATE.username,
+                    userlist: getUsernames(),
+                }));
+
+                //Add their name to the user list
+                var li = document.createElement("li");
+                li.id = "user_" + this.username;
+                var uname_span = document.createElement("span");
+                uname_span.appendChild(document.createTextNode(this.username));
+                li.appendChild(uname_span);
+                var kick = document.createElement("a");
+                kick.innerHTML = "X";
+                kick.href = "#";
+                kick.onclick = kickUser;
+                li.appendChild(kick);
+                document.getElementById("userlist").appendChild(li);
+
+                //update the log and chat window
+                msg = {
+                    id: randomString(12),
+                    type: "join",
+                    timestamp: (new Date()).getTime(),
+                    username: this.username,
+                }
+                STATE.logs.push(msg);
+                renderChat();
+
+                //send a join notification to all the other users
+                for(var k in STATE.users){
+                    if(STATE.users[k].dc.username
+                       && STATE.users[k].dc.username !== this.username
+                       && STATE.users[k].iceConnectionState === "connected"
+                    ){
+                        STATE.users[k].dc.send(JSON.stringify(msg));
+                    }
+                }
+            }
+
+            //A host has approved your request and a connection has been established
+            function receiveInitiatorOpen(evt){
+                //close the request modal
+                document.getElementById("join-modal").style.display = "none";
+                document.getElementById("start-modal").style.display = "none";
+                document.getElementById("request-modal").style.display = "none";
+                document.getElementById("modal-wrapper").style.display = "none";
+
+                //update the room name as connecting
+                document.getElementById("room-name").innerHTML = "Connecting...";
+            }
+            function receiveMessage(evt){
+                //string message (message|room|join|leave)
+                if(typeof(evt.data) === "string"){
+                    var data = JSON.parse(evt.data);
+                }
+                //arraybuffer message (file)
+                else{
+                    var data = {type: "file"};
+                }
+
+                //room messages
+                if(data.type === "room"){
+                    //update the name of the room
+                    document.getElementById("room-name").innerHTML = "";
+                    document.getElementById("room-name").appendChild(document.createTextNode(data.roomname))
+                    document.getElementById("open-leave").style.display = "inline-block";
+
+                    //update the users in the room
+                    document.getElementById("userlist").innerHTML = "";
+                    for(var i = 0; i < data.userlist.length; i++){
+                        var li = document.createElement("li");
+                        li.id = "user_" + data.userlist[i];
+                        var uname_span = document.createElement("span");
+                        if(data.userlist[i] === STATE.username){
+                            var uname_str = data.userlist[i] + " (tu)";
+                        }
+                        else{
+                            var uname_str = data.userlist[i];
+                        }
+                        uname_span.appendChild(document.createTextNode(uname_str));
+                        li.appendChild(uname_span);
+                        document.getElementById("userlist").appendChild(li);
+                    }
+                }
+
+                //regular messages
+                else if(data.type === "message"){
+                    STATE.logs.push(data);
+                    renderChat();
+                }
+
+                //join messages
+                else if(data.type === "join"){
+
+                    //update the user list
+                    var li = document.createElement("li");
+                    var uname_span = document.createElement("span");
+                    var uname_str = data.username;
+                    uname_span.appendChild(document.createTextNode(uname_str));
+                    li.appendChild(uname_span);
+                    document.getElementById("userlist").appendChild(li);
+
+                    //update the log and chat window
+                    STATE.logs.push(data);
+                    renderChat();
+                }
+
+                //join messages
+                else if(data.type === "leave"){
+
+                    //update the user list
+                    var li = document.getElementById("user_" + data.username);
+                    li.parentNode.removeChild(li);
+
+                    //update the log and chat window
+                    STATE.logs.push(data);
+                    renderChat();
+                }
+
+                //file messages
+                else if(data.type === "file"){
+                    //TODO parse file messages################
+                    console.log("receiveMessage evt", evt);
+                }
+
+                //relay messages to other users
+                if(["message", "file"].indexOf(data.type) !== -1){
+                    for(var k in STATE.users){
+                        if(STATE.users[k].dc.username
+                           && STATE.users[k].dc.username !== data.username
+                           && STATE.users[k].iceConnectionState === "connected"
+                        ){
+                            //TODO: Figure out relaying files################
+                            STATE.users[k].dc.send(JSON.stringify(data));
+                        }
+                    }
+                }
+            }
+
+            /*********************
+            **********************
+            **** UI Listeners ****
+            **********************
+            *********************/
+
+            //make a new chat room that you host
+            function newRoom(evt){
+                if(evt && evt.preventDefault) evt.preventDefault();
+
+                //show pending
+                document.getElementById("new-room").onclick = ignore;
+                document.getElementById("new-room").innerHTML = "Generando sala...";
+
+                //reset state
+                resetState();
+
+                //update room name
+                document.getElementById("room-name").innerHTML = "";
+                var roomName = document.createTextNode(STATE.username);
+                document.getElementById("room-name").appendChild(roomName);
+
+                //update user list
+                document.getElementById("userlist").innerHTML = "";
+                var onlyUser = document.createTextNode(STATE.username + " (tu) ");
+                var userLi = document.createElement("li");
+                userLi.appendChild(onlyUser);
+                document.getElementById("userlist").appendChild(userLi);
+
+                //show the invite and approve user links (since you are the host)
+                document.getElementById("open-invite").style.display = "inline-block";
+                document.getElementById("open-approve").style.display = "inline-block";
+                document.getElementById("open-leave").style.display = "inline-block";
+
+                //close the modal
+                document.getElementById("start-modal").style.display = "none";
+                document.getElementById("modal-wrapper").style.display = "none";
+                resizer();
+
+                //reset the new room link
+                document.getElementById("new-room").innerHTML = "Create a new room";
+                document.getElementById("new-room").onclick = newRoom;
+
+                //reset chat list
+                renderChat();
+            }
+
+            //update the chat window based on the STATE logs
+            function renderChat(){
+
+                //make reference for log ids
+                var newLogs = {};
+                for(var i = 0; i < STATE.logs.length; i++){
+                    var liId = "log_" + STATE.logs[i].id;
+                    newLogs[liId] = true;
+                }
+
+                //remove old chat
+                var existingChat = document.querySelectorAll("#room > li");
+                var existingIds = {};
+                for(var i = 0; i < existingChat.length; i++){
+                    if(newLogs[existingChat[i].id] === undefined){
+                        var delLog = existingChat[i];
+                        delLog.parentNode.removeChild(delLog);
+                    }
+                    else{
+                        existingIds[existingChat[i].id] = true;
+                    }
+                }
+
+                //insert new logs and update existing logs
+                for(var i = 0; i < STATE.logs.length; i++){
+                    var liId = "log_" + STATE.logs[i].id;
+
+                    //skip if log entry already exists and not a file update
+                    if(STATE.logs[i] !== "file" && existingIds[liId] !== undefined){
+                        continue;
+                    }
+
+                    //build the base-level chat log with username and date
+                    var spans = [];
+                    var date_str = (new Date(STATE.logs[i].timestamp)).toLocaleString();
+                    var date_span = document.createElement("span");
+                    date_span.className = "date";
+                    date_span.appendChild(document.createTextNode(date_str));
+                    spans.push(date_span);
+
+                    var user_str = STATE.logs[i].username + ":";
+                    var user_span = document.createElement("span");
+                    user_span.className = "user";
+                    user_span.appendChild(document.createTextNode(user_str));
+                    spans.push(user_span);
+
+                    //message log
+                    if(STATE.logs[i].type === "message"){
+                        var message_span = document.createElement("span");
+                        message_span.className = "message";
+                        message_span.appendChild(document.createTextNode(STATE.logs[i].message));
+                        spans.push(message_span);
+                    }
+
+                    //file log
+                    if(STATE.logs[i].type === "file"){
+                        var file_span = document.createElement("span");
+                        file_span.className = "message";
+                        file_span.appendChild(document.createTextNode(STATE.logs[i].filename));
+                        spans.push(file_span);
+                    }
+
+                    //join log
+                    if(STATE.logs[i].type === "join"){
+                        var join_str = "joined the chat";
+                        var join_span = document.createElement("span");
+                        join_span.className = "message";
+                        join_span.appendChild(document.createTextNode(join_str));
+                        spans.push(join_span);
+                    }
+
+                    //leave log
+                    if(STATE.logs[i].type === "leave"){
+                        var leave_str = "left the chat";
+                        var leave_span = document.createElement("span");
+                        leave_span.className = "message";
+                        leave_span.appendChild(document.createTextNode(leave_str));
+                        spans.push(leave_span);
+                    }
+
+                    //see if the log already exists
+                    var li = document.getElementById(liId);
+                    if(li === null){
+                        //make a new log entry
+                        li = document.createElement("li");
+                        li.id = liId;
+                        document.getElementById("room").appendChild(li);
+                    }
+
+                    //insert the log content
+                    for(var j = 0; j < spans.length; j++){
+                        li.appendChild(spans[j]);
+
+                        //scroll if on the last span
+                        if(j === spans.length - 1){
+                            li.scrollIntoView();
+                        }
+                    }
+                }
+            }
+            document.getElementById("new-room").onclick = newRoom;
+
+            //create an invite link
+            function generateInvite(evt){
+                if(evt && evt.preventDefault) evt.preventDefault();
+
+                //show the modal
+                document.getElementById("invite-modal").style.display = "inline-block";
+                document.getElementById("modal-wrapper").style.display = "block";
+                document.getElementById("open-invite").onclick = ignore;
+                document.getElementById("generate-invite").onclick = ignore;
+                document.getElementById("generate-invite").innerHTML = "Generando...";
+                document.getElementById("invite-code").value = "Generando...";
+
+                //create new peer connection
+                var pc = new RTCPeerConnection({iceServers: [{url: "stun:stun.services.mozilla.com"}]});
+                pc.iceCandidates = [];
+
+                //create the data channel for the initiator
+                pc.dc = pc.createDataChannel("");
+                pc.dc.connId = randomString(4); //to to keep track of what invites are being responded to
+                pc.dc.binaryType = "arraybuffer";
+                pc.dc.onopen = receiveRemoteOpen;
+                pc.dc.onmessage = receiveMessage;
+
+                //create a new offer
+                pc.createOffer(function(localOffer){
+                    pc.localOffer = localOffer
+
+                    //populate ICE candidates
+                    pc.onicecandidate = function(evt){
+                        if(evt.candidate){
+                            pc.iceCandidates.push(evt.candidate.candidate.split("candidate:")[1]);
+                        }
+                        //done collecting ice candidates
+                        else{
+                            //save the new peer connection
+                            STATE.users[pc.dc.connId] = pc;
+
+                            //generate the invite code
+                            var offerB58 = "https://kun050710.github.io/#" +
+                                strToB58(JSON.stringify([
+                                    pc.dc.connId,
+                                    STATE.username,
+                                    pc.localOffer.sdp.replace(/\r/g, ""),
+                                    pc.iceCandidates,
+                                ])
+                            );
+
+                            //reset the modal
+                            document.getElementById("open-invite").onclick = generateInvite;
+                            document.getElementById("generate-invite").onclick = generateInvite;
+                            document.getElementById("generate-invite").innerHTML = "Generar una nueva invitación";
+                            document.getElementById("invite-code").value = offerB58;
+
+                            //reset chat list
+                            renderChat();
+                        }
+                    };
+
+                    //trigger STUN requests
+                    pc.setLocalDescription(localOffer, ignore, error);
+                }, error);
+            }
+            document.getElementById("open-invite").onclick = generateInvite;
+            document.getElementById("generate-invite").onclick = generateInvite;
+
+            //close the generate invite modal
+            function closeInvite(evt){
+                if(evt && evt.preventDefault) evt.preventDefault();
+                document.getElementById("invite-modal").style.display = "none";
+                document.getElementById("modal-wrapper").style.display = "none";
+            }
+            document.getElementById("close-invite").onclick = closeInvite;
+
+            //join a room manually
+            function joinRoom(evt){
+                if(evt && evt.preventDefault) evt.preventDefault();
+
+                //switch modals to the join modal and clear the textarea
+                document.getElementById("start-modal").style.display = "none";
+                document.getElementById("join-modal").style.display = "inline-block";
+                document.getElementById("join-code").value = "";
+            }
+            document.getElementById("join-room").onclick = joinRoom;
+
+            //close the manual join modal (this goes back to the start modal)
+            function closeJoin(evt){
+                if(evt && evt.preventDefault) evt.preventDefault();
+                document.getElementById("join-modal").style.display = "none";
+                document.getElementById("start-modal").style.display = "inline-block";
+            }
+            document.getElementById("close-join").onclick = closeJoin;
+
+            //clear the current chat and go back to the start modal
+            function leaveChat(evt, dontask){
+                if(evt && evt.preventDefault) evt.preventDefault();
+
+                //ask for confirmation before deleting everything
+                if((!dontask) && !window.confirm("¿Estás seguro de que quieres irte? Todos los datos de chat serán eliminados.")){
+                    return;
+                }
+
+                //reset state
+                resetState();
+                renderChat();
+                document.getElementById("room-name").innerHTML = "";
+                document.getElementById("userlist").innerHTML = "";
+                document.getElementById("open-invite").style.display = "none";
+                document.getElementById("open-approve").style.display = "none";
+                document.getElementById("open-leave").style.display = "none";
+
+                //show the start modal
+                document.getElementById("start-modal").style.display = "inline-block";
+                document.getElementById("modal-wrapper").style.display = "block";
+            }
+            document.getElementById("open-leave").onclick = leaveChat;
+
+            //open the approval modal
+            function openApprove(evt){
+                if(evt && evt.preventDefault) evt.preventDefault();
+                document.getElementById("approve-code").value = "";
+                document.getElementById("invite-modal").style.display = "none";
+                document.getElementById("approve-modal").style.display = "inline-block";
+                document.getElementById("modal-wrapper").style.display = "block";
+                document.getElementById("approve-request").innerHTML = "Aceptar Invitación";
+                document.getElementById("approve-request").onclick = approveRequest;
+            }
+            document.getElementById("open-approve").onclick = openApprove;
+            document.getElementById("invite-approve").onclick = openApprove;
+
+            //close the approval modal
+            function closeApprove(evt){
+                if(evt && evt.preventDefault) evt.preventDefault();
+                document.getElementById("approve-modal").style.display = "none";
+                document.getElementById("modal-wrapper").style.display = "none";
+            }
+            document.getElementById("close-approve").onclick = closeApprove;
+
+            //parse a request code as a peer connection answer
+            function approveRequest(evt){
+                if(evt && evt.preventDefault) evt.preventDefault();
+
+                //stop any listeners
+                document.getElementById("approve-request").onclick = ignore;
+                document.getElementById("approve-request").innerHTML = "Approving...";
+
+                //get rid of any request_code= prefix
+                var requestCode = document.getElementById("approve-code").value;
+                requestCode = requestCode.replace("request_code=", "");
+
+                //parse the request code
+                var answerPayload = JSON.parse(b58ToStr(requestCode));
+                var connId = answerPayload[0];
+                var username = answerPayload[1];
+                var sdp = answerPayload[2];
+                var iceList = answerPayload[3];
+
+                //update the peer connection with the username of the person
+                STATE.users[connId].dc.username = username;
+
+                //set the remote description for that peer connection
+                var remoteAnswer = new RTCSessionDescription({
+                    "type": "answer",
+                    "sdp": sdp,
+                });
+                STATE.users[connId].setRemoteDescription(remoteAnswer, function(){
+
+                    //add the ice candidates
+                    for(var i = 0; i < iceList.length; i++){
+                        var iceCandidate = new RTCIceCandidate({
+                            sdpMLineIndex: 0,
+                            candidate: "candidate:" + iceList[i],
+                        });
+                        STATE.users[connId].addIceCandidate(iceCandidate, ignore, error);
+                    }
+                }, error);
+            }
+            document.getElementById("approve-request").onclick = approveRequest;
+
+            //build a peer connection and an answer payload
+            function generateRequest(evt){
+                if(evt && evt.preventDefault) evt.preventDefault();
+
+                //switch to the request modal and mark as generating
+                document.getElementById("join-modal").style.display = "none";
+                document.getElementById("start-modal").style.display = "none";
+                document.getElementById("request-modal").style.display = "inline-block";
+                document.getElementById("modal-wrapper").style.display = "block";
+                document.getElementById("request-code").value = "Generando...";
+
+                //get rid of any website or hash "#" prefix
+                var joinCode = document.getElementById("join-code").value;
+                var joinCodeSplit = joinCode.split("#");
+                joinCode = joinCodeSplit[joinCodeSplit.length - 1];
+
+                //parse the offer payload
+                var offerPayload = JSON.parse(b58ToStr(joinCode));
+                var connId = offerPayload[0];
+                var username = offerPayload[1];
+                var sdp = offerPayload[2];
+                var iceList = offerPayload[3];
+
+                //make a peer connection object
+                var pc = new RTCPeerConnection({iceServers: [{url: "stun:stun.services.mozilla.com"}]});
+                pc.iceCandidates = [];
+                pc.ondatachannel = function(evt){
+                    pc.dc = evt.channel;
+                    pc.dc.connId = connId;
+                    pc.dc.username = username;
+                    pc.dc.binaryType = "arraybuffer";
+                    pc.dc.onopen = receiveInitiatorOpen;
+                    pc.dc.onmessage = receiveMessage;
+                }
+
+                //configure the peer connection as a receiver of an offer
+                var offer = new RTCSessionDescription({
+                    "type": "offer",
+                    "sdp": sdp,
+                });
+                pc.setRemoteDescription(offer, function(){
+
+                    //set the ice candidates for the peer connection
+                    for(var i = 0; i < iceList.length; i++){
+                        var iceCandidate = new RTCIceCandidate({
+                            sdpMLineIndex: 0,
+                            candidate: "candidate:" + iceList[i],
+                        });
+                        pc.addIceCandidate(iceCandidate, ignore, error);
+                    }
+
+                    //create the answer payload
+                    pc.createAnswer(function(answer){
+                        pc.answer = answer;
+
+                        //populate ICE candidates
+                        pc.onicecandidate = function(evt){
+                            if(evt.candidate){
+                                pc.iceCandidates.push(evt.candidate.candidate.split("candidate:")[1]);
+                            }
+                            //done collecting ice candidates
+                            else{
+                                //save the new peer connection
+                                STATE.users[connId] = pc;
+
+                                //generate the invite code
+                                var offerB58 = "request_code=" +
+                                    strToB58(JSON.stringify([
+                                        connId,
+                                        STATE.username,
+                                        pc.answer.sdp.replace(/\r/g, ""),
+                                        pc.iceCandidates,
+                                    ])
+                                );
+
+                                //show the request code
+                                document.getElementById("request-code").value = offerB58;
+                            }
+                        };
+
+                        //trigger STUN requests
+                        pc.setLocalDescription(answer, ignore, error);
+                    }, error);
+                }, error);
+            }
+            document.getElementById("generate-request").onclick = generateRequest;
+
+            //close the request modal and go back
+            function closeRequest(evt){
+                if(evt && evt.preventDefault) evt.preventDefault();
+                document.getElementById("join-modal").style.display = "inline-block";
+                document.getElementById("request-modal").style.display = "none";
+                document.getElementById("modal-wrapper").style.display = "block";
+            }
+            document.getElementById("close-request").onclick = closeRequest;
+
+            //send a message to all connected users
+            function sendMessage(evt){
+                if(evt && evt.preventDefault) evt.preventDefault();
+
+                //build the message packet
+                var msg = {
+                    id: randomString(12),
+                    type: "message",
+                    timestamp: (new Date()).getTime(),
+                    username: STATE.username,
+                    message: document.getElementById("input").value,
+                };
+
+                //send the message to all connected users
+                for(var k in STATE.users){
+                    if(STATE.users[k].dc.username && STATE.users[k].iceConnectionState === "connected"){
+                        STATE.users[k].dc.send(JSON.stringify(msg));
+                    }
+                }
+
+                //update the log and render the chat
+                STATE.logs.push(msg);
+                renderChat();
+                document.getElementById("input").value = "";
+            }
+            document.getElementById("submit").onclick = sendMessage;
+
+
+            //incomplete
+            document.getElementById("upload").onclick = function(){}; //#########################
+            function kickUser(){} //#########################
+            function downloadData(){} //#########################
+
+
+
+            //see if there's an invite code in the url (i.e. someone clicked on a link)
+            if(window.location.hash !== ""){
+                document.getElementById("join-code").value = window.location.hash;
+                window.location.hash = "";
+                generateRequest();
+            }
+            //default is just the start modal
+            else{
+                leaveChat(undefined, true);
+            }
+        </script>
+    </body>
+</html>
