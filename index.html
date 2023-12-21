@@ -170,7 +170,7 @@
         <ul class="navbar-list">
 
           <li class="navbar-item">
-            <button class="navbar-link  active" data-nav-link>About</button>
+            <button class="navbar-link  active" data-nav-link >About</button>
           </li>
 
           <li class="navbar-item">
@@ -201,7 +201,7 @@
         - #ABOUT
       -->
 
-      <article class="about  active" data-page="about">
+      <article class="about active" data-page="about">
 
         <header>
           <h2 class="h2 article-title">About me</h2>
@@ -211,7 +211,8 @@
           <p>
             Hey! I'm kun05, a tech enthusiast since childhood, starting with 
             tinkering with electronic components and progressing into 
-            programming to automate daily tasks. 
+            programming to automate daily tasks, make web pages,
+            tinkering with arduino... 
           </p>
 
           <p>
@@ -381,6 +382,44 @@
           </ul>
           
         </section>
+
+        <!--
+          - testimonials modal
+        -->
+
+        <div class="modal-container" data-modal-container>
+
+          <div class="overlay" data-overlay></div>
+
+          <section class="testimonials-modal">
+
+            <button title="a" class="modal-close-btn" data-modal-close-btn>
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+
+            <div class="modal-img-wrapper">
+              <figure class="modal-avatar-box">
+                <img src="./assets/images/avatar-1.png" alt="#" width="80" data-modal-img>
+              </figure>
+
+              <img src="./assets/images/icon-quote.svg" alt="quote icon">
+            </div>
+
+            <div class="modal-content">
+
+              <h4 class="h3 modal-title" data-modal-title></h4>
+
+              <time datetime="2021-06-14"></time>
+
+              <div data-modal-text>
+                
+              </div>
+
+            </div>
+
+          </section>
+
+        </div>
 
         <!--
           - clients
@@ -921,7 +960,7 @@
         - #CONTACT
       -->
 
-      <article class="contact" data-page="contact">
+      <article class="contact active" data-page="contact">
 
         <header>
           <h2 class="h2 article-title">Contact</h2>
